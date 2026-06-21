@@ -1,13 +1,12 @@
 package com.linktictest.inventario.Controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.linktictest.inventario.DTO.CompraRequestDTO;
+import com.linktictest.inventario.Entity.InventarioEntity;
+import org.springframework.http.ResponseEntity;
 
-@RestController("/Inventario/")
-public class InventarioController {
+public interface InventarioController {
 
-    @GetMapping("/GetAll")
-    public void getAllInventario(){
-        
-    }
+    ResponseEntity<InventarioEntity> consultarInventario(Long productoId);
+    ResponseEntity<InventarioEntity> actualizarCantidad(Long productoId, Integer cantidad);
+    ResponseEntity<String> procesarCompra(CompraRequestDTO request, String apiKey);
 }

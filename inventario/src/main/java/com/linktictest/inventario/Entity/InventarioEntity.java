@@ -18,13 +18,11 @@ import java.time.LocalDateTime;
 public class InventarioEntity {
 
     @Id
-    @Column(name = "producto_id")
-    private Long productoId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
-    @JoinColumn(name = "producto_id")
-    private ProductoEntity producto;
+    @Column(name = "producto_id", nullable = false)
+    private Long producto;
 
     @Column(name = "cantidad", nullable = false)
     private Integer cantidad = 0;

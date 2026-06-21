@@ -20,9 +20,8 @@ public class CompraEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "producto_id", nullable = false)
-    private ProductoEntity producto;
+    @Column(name = "producto_id", nullable = false)
+    private Long Idproducto;
 
     @Column(name = "cantidad_comprada", nullable = false)
     private Integer cantidadComprada;
