@@ -13,8 +13,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -74,7 +72,8 @@ public class InventarioServiceImplTest {
         existente.setCantidad(20);
 
         when(inventarioRepository.findByProducto(productoId)).thenReturn(Optional.of(existente));
-        when(inventarioRepository.save(any(InventarioEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(inventarioRepository.save(any(InventarioEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         InventarioEntity result = inventarioService.actualizarCantidad(productoId, nuevaCantidad);
 
@@ -91,7 +90,8 @@ public class InventarioServiceImplTest {
         Integer nuevaCantidad = 30;
 
         when(inventarioRepository.findByProducto(productoId)).thenReturn(Optional.empty());
-        when(inventarioRepository.save(any(InventarioEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(inventarioRepository.save(any(InventarioEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         InventarioEntity result = inventarioService.actualizarCantidad(productoId, nuevaCantidad);
 
@@ -119,7 +119,8 @@ public class InventarioServiceImplTest {
 
         when(productoClient.obtenerProductoPorId(productoId, apiKey)).thenReturn(productoDTO);
         when(inventarioRepository.findByProducto(productoId)).thenReturn(Optional.of(inventario));
-        when(inventarioRepository.save(any(InventarioEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(inventarioRepository.save(any(InventarioEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
         when(compraRepository.save(any(CompraEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         String result = inventarioService.procesarCompra(productoId, cantidadAComprar, apiKey);
@@ -172,6 +173,32 @@ public class InventarioServiceImplTest {
         assertThrows(RuntimeException.class, () -> {
             inventarioService.procesarCompra(productoId, cantidadAComprar, apiKey);
         });
+
+        verify(productoClient, times(1)).obtenerProductoPorId(productoId, apiKey);
+        verify(inventarioRepository, times(1)).findByProducto(productoId);
+        verify(inventarioRepository, never()).save(any(InventarioEntity.class));
+        verify(compraRepository, never()).save(any(CompraEntity.class));
+    }
+
+    @Test
+    public void procesarCompra_ProductoSinInventario() {
+        Long productoId = 1L;
+        Integer cantidadAComprar = 5;
+        String apiKey = "test-token";
+
+        ProductoDTO productoDTO = new ProductoDTO();
+        productoDTO.setId(productoId);
+        productoDTO.setNombre("Producto de prueba");
+        productoDTO.setPrecio(BigDecimal.valueOf(10.50));
+
+        when(productoClient.obtenerProductoPorId(productoId, apiKey)).thenReturn(productoDTO);
+        when(inventarioRepository.findByProducto(productoId)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            inventarioService.procesarCompra(productoId, cantidadAComprar, apiKey);
+        });
+
+        assertEquals("Producto sin registro de inventario.", exception.getMessage());
 
         verify(productoClient, times(1)).obtenerProductoPorId(productoId, apiKey);
         verify(inventarioRepository, times(1)).findByProducto(productoId);

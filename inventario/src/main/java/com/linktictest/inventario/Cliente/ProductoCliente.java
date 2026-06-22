@@ -1,7 +1,7 @@
 package com.linktictest.inventario.Cliente;
 
 import com.linktictest.inventario.DTO.ProductoDTO;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.util.retry.Retry;
@@ -11,11 +11,11 @@ import java.time.Duration;
 public class ProductoCliente {
 
     private final WebClient webClient;
-    private final Environment env;
+    private final String productosApiUrl;
 
-    public ProductoCliente(Environment environment) {
-        this.env = environment;
-        this.webClient = WebClient.builder().baseUrl(env.getProperty("productosEndpoint")).build();
+    public ProductoCliente(@Value("${productosEndpoint}") String productosApiUrl) {
+        this.productosApiUrl = productosApiUrl;
+        this.webClient = WebClient.builder().baseUrl(productosApiUrl).build();
     }
 
     public ProductoDTO obtenerProductoPorId(Long productoId, String apiKey) {

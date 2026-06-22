@@ -1,0 +1,70 @@
+services:
+  # --- CONTENEDOR DE BASE DE DATOS ---
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: postgres_contenedor
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "0826"
+
+      POSTGRES_DB: linktictest
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data_v4:/var/lib/postgresql/data
+    networks:
+      - red-microservicios
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d linktictest"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --- CONTENEDOR MICROSERVICIO PRODUCTOS ---
+  ms-productos:
+    build:
+      context: ./productos
+      dockerfile: Dockerfile
+    container_name: ms_productos_contenedor
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/linktictest
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=0826
+      - API_SECURITY_TOKEN=IJSKLs548dojklsfuxna884suzxHSU
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - red-microservicios
+
+  # --- CONTENEDOR MICROSERVICIO INVENTARIO ---
+  ms-inventario:
+    build:
+      context: ./inventario
+      dockerfile: Dockerfile
+    container_name: ms_inventario_contenedor
+    ports:
+      - "8082:8082"
+    environment:
+      - SERVER_PORT=8082
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/linktictest
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=0826
+      - API_SECURITY_TOKEN=IJSKLs548dojklsfuxna884suzxHSU
+      - PRODUCTOS_API_URL=http://ms-productos:8081/api/productos
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      ms-productos:
+        condition: service_started
+    networks:
+      - red-microservicios
+
+volumes:
+  postgres_data_v4:
+
+networks:
+  red-microservicios:
+    driver: bridge
